@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit business partner{% endblock %}
+
+{% block body %}
+    <h1>Edit Business partner</h1>
+
+    {{ include('business_partner/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a class="btn btn-sm btn-outline-secondary float-start" href="{{ path('app_business_partner_list') }}">Back to list</a>
+
+    {{ include('business_partner/_delete_form.html.twig') }}
+{% endblock %}

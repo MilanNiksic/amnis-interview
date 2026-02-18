@@ -1,0 +1,22 @@
+default:
+    suites:
+        admin:
+            paths: [ "features" ]
+            contexts:
+                - App\Tests\Behat\AppContext
+                - Behat\MinkExtension\Context\MinkContext
+                - behatch:context:json
+                - behatch:context:rest
+                - behatch:context:browser
+    extensions:
+        FriendsOfBehat\SymfonyExtension:
+            bootstrap: 'config/behat/bootstrap.php'
+            kernel:
+                debug: false
+                environment: test
+        Behatch\Extension: ~
+        Behat\MinkExtension:
+            files_path: "%paths.base%/tests/_fixtures/"
+            sessions:
+                symfony:
+                    symfony: ~

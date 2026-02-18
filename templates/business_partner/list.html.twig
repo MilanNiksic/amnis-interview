@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Business partner lists{% endblock %}
+
+{% block body %}
+    <h1>Business partner lists</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Legal form</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>Zip</th>
+                <th>Country</th>
+                <th>Balance</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for businessPartner in businessPartners %}
+                <tr>
+                    <td>{{ businessPartner.id }}</td>
+                    <td>{{ businessPartner.name }}</td>
+                    <td>{{ businessPartner.status.value }}</td>
+                    <td>{{ businessPartner.legalForm.value }}</td>
+                    <td>{{ businessPartner.address }}</td>
+                    <td>{{ businessPartner.city }}</td>
+                    <td>{{ businessPartner.zip }}</td>
+                    <td>{{ businessPartner.country }}</td>
+                    <td>{{ businessPartner.balance }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a class="btn btn-sm btn-outline-primary"
+                               href="{{ path('app_business_partner_show', {'id': businessPartner.id}) }}">Show</a>
+                            <a class="btn btn-sm btn-outline-secondary"
+                               href="{{ path('app_business_partner_edit', {'id': businessPartner.id}) }}">Edit</a>
+                            <a class="btn btn-sm btn-outline-success"
+                               href="{{ path('app_transaction_list', {'businessPartnerId': businessPartner.id}) }}">Transactions</a>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="10">No records found</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a class="btn btn-sm btn-outline-primary" href="{{ path('app_business_partner_new') }}">Create new</a>
+{% endblock %}

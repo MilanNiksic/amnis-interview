@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% set titleText = businessPartner is not null ? "Transaction list for " ~ businessPartner : "Transaction list" %}
+
+{% block title %}{{ titleText }}{% endblock %}
+
+{% block body %}
+    <h1>{{ titleText }}</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Amount</th>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Executed</th>
+                <th>Type</th>
+                <th>Country</th>
+                <th>Iban</th>
+                <th>Business partner</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.id }}</td>
+                    <td>{{ transaction.amount }}</td>
+                    <td>{{ transaction.name }}</td>
+                    <td>{{ transaction.date ? transaction.date|date('Y-m-d H:i:s') : '' }}</td>
+                    <td>{{ transaction.executed ? 'Yes' : 'No' }}</td>
+                    <td>{{ transaction.type.value }}</td>
+                    <td>{{ transaction.country }}</td>
+                    <td>{{ transaction.iban }}</td>
+                    <td><a href="{{ path('app_business_partner_show', {'id': transaction.businessPartner.id}) }}"
+                           target="_blank">{{ transaction.businessPartner }}</a></td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a class="btn btn-sm btn-outline-primary"
+                               href="{{ path('app_transaction_show', {'id': transaction.id}) }}">Show</a>
+                            <a class="btn btn-sm btn-outline-secondary"
+                               href="{{ path('app_transaction_edit', {'id': transaction.id}) }}">Edit</a>
+                            {% if(transaction.type.value == "payout") and transaction.executed is same as (false) %}
+                                <a class="btn btn-sm btn-outline-warning"
+                                   href="{{ path('app_transaction_execute', {'id': transaction.id}) }}">Execute</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="9">No records found</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a class="btn btn-sm btn-outline-primary" href="{{ path('app_transaction_new') }}">Create new</a>
+{% endblock %}

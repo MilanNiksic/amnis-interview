@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Business partner{% endblock %}
+
+{% block body %}
+    <h1>Create new Business partner</h1>
+
+    {{ include('business_partner/_form.html.twig') }}
+
+    <a class="btn btn-sm btn-outline-secondary float-start" href="{{ path('app_business_partner_list') }}">Back to list</a>
+{% endblock %}
