@@ -37,7 +37,7 @@ class Currency
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups(['CurrencyView'])]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 3, unique: true)]
     #[Assert\Length(min: 3, max: 3)]

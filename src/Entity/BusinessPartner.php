@@ -81,6 +81,10 @@ class BusinessPartner
     #[Groups(['BusinessPartnerView'])]
     private Collection $transactions;
 
+    #[ORM\OneToMany(targetEntity: Account::class, mappedBy: 'businessPartner')]
+    #[Groups(['BusinessPartnerView'])]
+    private Collection $accounts;
+
     public function __toString(): string
     {
         return $this->getName();
@@ -89,6 +93,7 @@ class BusinessPartner
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
+        $this->accounts = new ArrayCollection();
     }
 
     public function getId(): int
@@ -196,5 +201,27 @@ class BusinessPartner
     public function removeTransaction(Transaction $transaction): void
     {
         $this->transactions->removeElement($transaction);
+    }
+
+    public function getAccounts(): Collection
+    {
+        return $this->accounts;
+    }
+
+    public function addAccount(Account $account): static
+    {
+        if (!$this->accounts->contains($account)) {
+            $this->accounts->add($account);
+            $account->setBusinessPartner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAccount(Account $account): static
+    {
+        $this->accounts->removeElement($account);
+
+        return $this;
     }
 }

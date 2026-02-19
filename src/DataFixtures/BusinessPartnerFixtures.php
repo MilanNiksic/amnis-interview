@@ -23,6 +23,7 @@ class BusinessPartnerFixtures extends Fixture
         $businessPartner->setCountry('CH');
 
         $manager->persist($businessPartner);
+        $this->addReference(self::class . '::partnerTreasury', $businessPartner);
 
         $businessPartner = new BusinessPartner();
         $businessPartner->setName('AMNIS Europe AG');
@@ -35,6 +36,7 @@ class BusinessPartnerFixtures extends Fixture
         $businessPartner->setCountry('LI');
 
         $manager->persist($businessPartner);
+        $this->addReference(self::class . '::partnerAmnis', $businessPartner);
 
         $manager->flush();
     }
