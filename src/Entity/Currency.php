@@ -8,6 +8,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\GetCollection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -55,6 +57,18 @@ class Currency
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
     #[Groups(['CurrencyView', 'CurrencyPatch'])]
     private bool $isActive = true;
+
+    #[ORM\OneToMany(targetEntity: CurrencyExchangeRate::class, mappedBy: 'fromCurrency')]
+    private Collection $exchangeRatesFrom;
+
+    #[ORM\OneToMany(targetEntity: CurrencyExchangeRate::class, mappedBy: 'toCurrency')]
+    private Collection $exchangeRatesTo;
+
+    public function __construct()
+    {
+        $this->exchangeRatesFrom = new ArrayCollection();
+        $this->exchangeRatesTo = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -110,6 +124,66 @@ class Currency
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CurrencyExchangeRate>
+     */
+    public function getExchangeRatesFrom(): Collection
+    {
+        return $this->exchangeRatesFrom;
+    }
+
+    public function addExchangeRateFrom(CurrencyExchangeRate $exchangeRate): static
+    {
+        if (!$this->exchangeRatesFrom->contains($exchangeRate)) {
+            $this->exchangeRatesFrom->add($exchangeRate);
+            $exchangeRate->setFromCurrency($this);
+        }
+
+        return $this;
+    }
+
+    public function removeExchangeRateFrom(CurrencyExchangeRate $exchangeRate): static
+    {
+        if ($this->exchangeRatesFrom->removeElement($exchangeRate)) {
+            // set the owning side to null (unless already changed)
+            if ($exchangeRate->getFromCurrency() === $this) {
+                $exchangeRate->setFromCurrency(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CurrencyExchangeRate>
+     */
+    public function getExchangeRatesTo(): Collection
+    {
+        return $this->exchangeRatesTo;
+    }
+
+    public function addExchangeRateTo(CurrencyExchangeRate $exchangeRate): static
+    {
+        if (!$this->exchangeRatesTo->contains($exchangeRate)) {
+            $this->exchangeRatesTo->add($exchangeRate);
+            $exchangeRate->setToCurrency($this);
+        }
+
+        return $this;
+    }
+
+    public function removeExchangeRateTo(CurrencyExchangeRate $exchangeRate): static
+    {
+        if ($this->exchangeRatesTo->removeElement($exchangeRate)) {
+            // set the owning side to null (unless already changed)
+            if ($exchangeRate->getToCurrency() === $this) {
+                $exchangeRate->setToCurrency(null);
+            }
+        }
 
         return $this;
     }
