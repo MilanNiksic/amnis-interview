@@ -22,8 +22,14 @@ class PayinManager
             throw new TransactionExecutionException('Transaction is already executed');
         }
 
+        $account = $transaction->getAccount();
+        $businessPartner = $transaction->getBusinessPartner();
+        if (!$businessPartner->getAccounts()->contains($account)) {
+            throw new TransactionExecutionException('Account does not belong to business partner!');
+        }
+
         $transaction->setExecuted(true);
 
-        $this->balanceManager->increaseBalance($transaction->getBusinessPartner(), $transaction->getAmount());
+        $this->balanceManager->increaseBalance($account, $transaction->getAmount());
     }
 }

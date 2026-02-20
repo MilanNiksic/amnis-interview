@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Entity\BusinessPartner;
+use App\Entity\Account;
 use Doctrine\ORM\EntityManagerInterface;
 
 class BalanceManager
@@ -11,31 +11,29 @@ class BalanceManager
     {
     }
 
-    public function increaseBalance(BusinessPartner $businessPartner, string $amount): string
+    public function increaseBalance(Account $account, string $amount): string
     {
-        $balance = (float)$businessPartner->getBalance();
+        $balance = (float)$account->getBalance();
         $balance += (float)$amount;
-        $businessPartner->setBalance((string)$balance);
-
+        $account->setBalance($balance);
         $this->entityManager->flush();
 
         return $balance;
     }
 
-    public function decreaseBalance(BusinessPartner $businessPartner, string $amount): string
+    public function decreaseBalance(Account $account, string $amount): string
     {
-        $balance = (float)$businessPartner->getBalance();
+        $balance = (float)$account->getBalance();
         $balance -= (float)$amount;
-        $businessPartner->setBalance((string)$balance);
-
+        $account->setBalance($balance);
         $this->entityManager->flush();
 
         return $balance;
     }
 
-    public function hasEnoughMoneyForPayout(BusinessPartner $businessPartner, string $amount): bool
+    public function hasEnoughMoneyForPayout(Account $account, string $amount): bool
     {
-        $remainingBalance = (float)$businessPartner->getBalance();
+        $remainingBalance = (float)$account->getBalance();
         $remainingBalance -= (float)$amount;
 
         return $remainingBalance >= 0;

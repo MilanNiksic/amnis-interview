@@ -71,12 +71,6 @@ class BusinessPartner
     #[Groups(['BusinessPartnerView', 'BusinessPartnerCreate'])]
     private string $country;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    #[Assert\NotBlank]
-    #[Assert\GreaterThanOrEqual(0)]
-    #[Groups(['BusinessPartnerView'])]
-    private ?string $balance = '0';
-
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'businessPartner')]
     #[Groups(['BusinessPartnerView'])]
     private Collection $transactions;
@@ -169,16 +163,6 @@ class BusinessPartner
     public function setCountry(string $country): void
     {
         $this->country = $country;
-    }
-
-    public function getBalance(): ?string
-    {
-        return $this->balance;
-    }
-
-    public function setBalance(?string $balance): void
-    {
-        $this->balance = $balance;
     }
 
     public function getTransactions(): Collection

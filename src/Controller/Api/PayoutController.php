@@ -22,7 +22,7 @@ class PayoutController extends AbstractController
         }
 
         if (!$this->balanceManager->hasEnoughMoneyForPayout(
-            $transaction->getBusinessPartner(),
+            $transaction->getAccount(),
             $transaction->getAmount()
         )) {
             throw new TransactionExecutionException('You do not have enough money for a payout');

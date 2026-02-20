@@ -3,7 +3,9 @@
 namespace App\Tests\Behat;
 
 use ApiPlatform\Api\IriConverterInterface;
+use App\Entity\Account;
 use App\Entity\BusinessPartner;
+use App\Entity\Currency;
 use App\Entity\Transaction;
 use App\Enums\BusinessPartnerStatusEnum;
 use App\Enums\LegalFormEnum;
@@ -55,13 +57,33 @@ class AppContext implements Context
             $businessPartner->setName($businessPartnerItem['name']);
             $businessPartner->setStatus($businessPartnerItem['status']);
             $businessPartner->setLegalForm($businessPartnerItem['legalForm']);
-            $businessPartner->setBalance($businessPartnerItem['balance']);
             $businessPartner->setAddress($businessPartnerItem['address']);
             $businessPartner->setCity($businessPartnerItem['city']);
             $businessPartner->setZip($businessPartnerItem['zip']);
             $businessPartner->setCountry($businessPartnerItem['country']);
 
             $manager->persist($businessPartner);
+
+            // Create default CHF account with balance if provided
+            if (isset($businessPartnerItem['balance']) && $businessPartnerItem['balance'] !== null) {
+                $currency = $manager->getRepository(Currency::class)->findOneBy(['code' => 'CHF']);
+                if (!$currency) {
+                    $currency = new Currency();
+                    $currency->setCode('CHF');
+                    $currency->setScale(100);
+                    $currency->setIsActive(true);
+                    $manager->persist($currency);
+                }
+
+                $account = new Account();
+                $account->setName('CHF Account');
+                $account->setAccountNumber('CH9300762011623852957');
+                $account->setBusinessPartner($businessPartner);
+                $account->setCurrency($currency);
+                $account->setBalance((float)$businessPartnerItem['balance']);
+
+                $manager->persist($account);
+            }
         }
 
         $manager->flush();
@@ -85,13 +107,18 @@ class AppContext implements Context
             $transaction->setType($transactionItem['type']);
             $transaction->setCountry($transactionItem['country']);
             $transaction->setIban($transactionItem['iban']);
-            $transaction->setIban($transactionItem['iban']);
 
             /** @var BusinessPartner $businessPartner */
             $businessPartner = $transactionItem['businessPartner'];
 
             if ($businessPartner instanceof BusinessPartner) {
                 $transaction->setBusinessPartner($businessPartner);
+
+                // Set account to first available account for this business partner
+                $accounts = $businessPartner->getAccounts();
+                if ($accounts->count() > 0) {
+                    $transaction->setAccount($accounts->first());
+                }
             }
 
             $manager->persist($transaction);

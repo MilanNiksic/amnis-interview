@@ -15,6 +15,12 @@ class PayoutManager
 
     public function execute(Transaction $transaction): void
     {
+        $account = $transaction->getAccount();
+        $businessPartner = $transaction->getBusinessPartner();
+        if (!$businessPartner->getAccounts()->contains($account)) {
+            throw new TransactionExecutionException('Account does not belong to business partner!');
+        }
+
         if ($transaction->getType() !== TransactionTypeEnum::PAYOUT) {
             throw new TransactionExecutionException('Transaction type is not payout');
         }
@@ -28,7 +34,7 @@ class PayoutManager
         }
 
         if (!$this->balanceManager->hasEnoughMoneyForPayout(
-            $transaction->getBusinessPartner(),
+            $account,
             $transaction->getAmount()
         )) {
             throw new TransactionExecutionException('You do not have enough money for a payout');
@@ -36,6 +42,6 @@ class PayoutManager
 
         $transaction->setExecuted(true);
 
-        $this->balanceManager->decreaseBalance($transaction->getBusinessPartner(), $transaction->getAmount());
+        $this->balanceManager->decreaseBalance($account, $transaction->getAmount());
     }
 }

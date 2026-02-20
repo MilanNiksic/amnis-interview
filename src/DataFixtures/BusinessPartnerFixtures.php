@@ -16,7 +16,6 @@ class BusinessPartnerFixtures extends Fixture
         $businessPartner->setName('AMNIS Treasury Services AG');
         $businessPartner->setStatus(BusinessPartnerStatusEnum::ACTIVE);
         $businessPartner->setLegalForm(LegalFormEnum::LIMITED_LIABILITY_COMPANY);
-        $businessPartner->setBalance('10000');
         $businessPartner->setAddress('Baslerstrasse 60');
         $businessPartner->setCity('Zürich');
         $businessPartner->setZip(8048);
@@ -29,7 +28,6 @@ class BusinessPartnerFixtures extends Fixture
         $businessPartner->setName('AMNIS Europe AG');
         $businessPartner->setStatus(BusinessPartnerStatusEnum::INACTIVE);
         $businessPartner->setLegalForm(LegalFormEnum::LIMITED_LIABILITY_COMPANY);
-        $businessPartner->setBalance('10000');
         $businessPartner->setAddress('Gewerbeweg 15');
         $businessPartner->setCity('Vaduz');
         $businessPartner->setZip(9490);
