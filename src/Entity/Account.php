@@ -103,6 +103,11 @@ class Account
     #[Groups(['AccountView'])]
     private Collection $transactions;
 
+    public function __toString(): string
+    {
+        return $this->getName() . ' (' . $this->getCurrencyCode() . ')';
+    }
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -223,5 +228,17 @@ class Account
     public function removeTransaction(Transaction $transaction): void
     {
         $this->transactions->removeElement($transaction);
+    }
+
+    #[Groups(['AccountView'])]
+    public function getCurrencyCode(): ?string
+    {
+        return $this->currency?->getCode();
+    }
+
+    #[Groups(['AccountView'])]
+    public function getCurrencyScale(): ?int
+    {
+        return $this->currency?->getScale();
     }
 }

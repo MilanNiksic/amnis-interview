@@ -21,11 +21,13 @@ class Exchange
     #[ORM\ManyToOne(targetEntity: Currency::class)]
     #[Assert\NotBlank]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['ExchangeCreate'])]
     private Currency $fromCurrency;
 
     #[ORM\ManyToOne(targetEntity: Currency::class)]
     #[Assert\NotBlank]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['ExchangeCreate'])]
     private Currency $toCurrency;
 
     #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
@@ -39,15 +41,17 @@ class Exchange
     #[Assert\NotBlank]
     #[Assert\Positive]
     #[Assert\Type('int')]
-    #[Groups(['ExchangeCreate'])]
+    #[Groups(['ExchangeCreate', 'ExchangeView'])]
     private string $toAmount;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 18, scale: 8)]
     #[Assert\NotBlank]
     #[Assert\Positive]
+    #[Groups(['ExchangeCreate', 'ExchangeView'])]
     private string $exchangeRate;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    #[Groups(['ExchangeCreate', 'ExchangeView'])]
     private \DateTimeImmutable $createdAt;
 
     public function __construct()

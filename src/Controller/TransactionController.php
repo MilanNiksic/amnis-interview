@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Transaction;
 use App\Form\TransactionType;
+use App\Repository\AccountRepository;
 use App\Repository\BusinessPartnerRepository;
 use App\Repository\TransactionRepository;
 use App\Service\PayoutManager;
@@ -21,17 +22,25 @@ class TransactionController extends AbstractController
     public function list(
         Request $request,
         TransactionRepository $transactionRepository,
-        BusinessPartnerRepository $businessPartnerRepository
+        BusinessPartnerRepository $businessPartnerRepository,
+        AccountRepository $accountRepository
     ): Response {
         $businessPartnerId = $request->query->get('businessPartnerId');
+        $accountId = $request->query->get('accountId');
 
         $businessPartner = $businessPartnerId ? $businessPartnerRepository->find($businessPartnerId) : null;
+        $account = $accountId ? $accountRepository->find($accountId) : null;
+
+        $transactions = match (true) {
+            isset($account) => $transactionRepository->findByAccount($account),
+            isset($businessPartner) => $transactionRepository->findByBusinessPartner($businessPartner),
+            default => $transactionRepository->findAll(),
+        };
 
         return $this->render('transaction/list.html.twig', [
             'businessPartner' => $businessPartner,
-            'transactions' => $businessPartner
-                ? $transactionRepository->findByBusinessPartner($businessPartner)
-                : $transactionRepository->findAll(),
+            'account' => $account,
+            'transactions' => $transactions
         ]);
     }
 
@@ -82,7 +91,7 @@ class TransactionController extends AbstractController
     #[Route('/{id}/edit', name: 'app_transaction_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Transaction $transaction, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(TransactionType::class, $transaction);
+        $form = $this->createForm(TransactionType::class, $transaction, ['is_edit' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

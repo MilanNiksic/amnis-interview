@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Link;
 use App\Controller\Api\PayinController;
 use App\Controller\Api\PayoutController;
 use App\Controller\Api\PayoutExecutionController;
@@ -39,6 +40,16 @@ use Symfony\Component\Validator\Constraints as Assert;
             denormalizationContext: ['groups' => ['TransactionPatch']]
         ),
         new GetCollection(),
+        new GetCollection(
+            uriTemplate: '/accounts/{accountId}/transactions',
+            uriVariables: [
+                'accountId' => new Link(
+                    fromClass: Account::class,
+                    fromProperty: 'transactions'
+                )
+            ],
+            name: 'get_transactions_by_account'
+        ),
     ],
     normalizationContext: ['groups' => ['TransactionView']]
 )]
