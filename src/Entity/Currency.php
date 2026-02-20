@@ -40,6 +40,7 @@ class Currency
     private int $id;
 
     #[ORM\Column(length: 3, unique: true)]
+    #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 3)]
     #[Groups(['CurrencyView', 'CurrencyCreate'])]
     private string $code;
@@ -49,8 +50,9 @@ class Currency
     private ?string $name = null;
 
     #[ORM\Column(type: Types::SMALLINT)]
+    #[Assert\NotBlank]
     #[Assert\Positive(message: 'Scale must be a positive number larger than 0')]
-    #[Assert\Length(min: 1, max: 4)]
+    #[Assert\Length(min: 1, max: 10)]
     #[Groups(['CurrencyCreate'])]
     private int $scale;
 

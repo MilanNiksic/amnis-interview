@@ -6,8 +6,11 @@ use App\Repository\AccountRepository;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\GetCollection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -27,6 +30,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
         new Get(),
         new Post(
             denormalizationContext: ['groups' => ['AccountCreate']]
+        ),
+        new Patch(
+            denormalizationContext: ['groups' => ['AccountPatch']]
         ),
         new GetCollection(),
         new GetCollection(
@@ -53,11 +59,13 @@ class Account
 
     #[ORM\ManyToOne(targetEntity: BusinessPartner::class, inversedBy: 'accounts')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[Assert\NotBlank]
     #[Groups(['AccountView', 'AccountCreate'])]
     private BusinessPartner $businessPartner;
 
     #[ORM\ManyToOne(targetEntity: Currency::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[Assert\NotBlank]
     #[Groups(['AccountView', 'AccountCreate'])]
     private Currency $currency;
 
@@ -69,16 +77,18 @@ class Account
 
     #[ORM\Column(length: 255)]
     #[Assert\Length(min: 1, max: 255)]
-    #[Groups(['AccountView', 'AccountCreate'])]
+    #[Assert\NotBlank]
+    #[Groups(['AccountView', 'AccountCreate', 'AccountPatch'])]
     private string $name;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank]
     #[Assert\Length(min: 1, max: 50)]
     #[Groups(['AccountView', 'AccountCreate'])]
     private string $accountNumber;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
-    #[Groups(['AccountView'])]
+    #[Groups(['AccountView', 'AccountPatch'])]
     private bool $isActive = true;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
@@ -89,10 +99,15 @@ class Account
     #[Groups(['AccountView'])]
     private \DateTime $updatedAt;
 
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'account')]
+    #[Groups(['AccountView'])]
+    private Collection $transactions;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTime();
+        $this->transactions = new ArrayCollection();
     }
 
     #[ORM\PreUpdate]
@@ -186,5 +201,27 @@ class Account
     public function setBalance(float $balance): void
     {
         $this->balanceMinor = (int)round($balance * $this->currency->getScale(), PHP_ROUND_HALF_DOWN);
+    }
+
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function setTransactions(Collection $transactions): void
+    {
+        $this->transactions = $transactions;
+    }
+
+    public function addTransaction(Transaction $transaction): void
+    {
+        if (!$this->transactions->contains($transaction)) {
+            $this->transactions->add($transaction);
+        }
+    }
+
+    public function removeTransaction(Transaction $transaction): void
+    {
+        $this->transactions->removeElement($transaction);
     }
 }

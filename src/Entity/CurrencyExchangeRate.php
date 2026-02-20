@@ -18,13 +18,16 @@ class CurrencyExchangeRate
 
     #[ORM\ManyToOne(inversedBy: 'exchangeRatesFrom')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
     private Currency $fromCurrency;
 
     #[ORM\ManyToOne(inversedBy: 'exchangeRatesTo')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
     private Currency $toCurrency;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 18, scale: 8)]
+    #[Assert\NotBlank]
     #[Assert\Positive]
     private string $rate;
 

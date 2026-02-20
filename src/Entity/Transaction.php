@@ -91,6 +91,17 @@ class Transaction
     #[Groups(['TransactionView', 'TransactionCreate'])]
     private BusinessPartner $businessPartner;
 
+    #[ORM\ManyToOne(targetEntity: Account::class, inversedBy: 'transactions')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank]
+    #[Groups(['TransactionView', 'TransactionCreate'])]
+    private Account $account;
+
+    #[ORM\ManyToOne(targetEntity: Exchange::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['TransactionView'])]
+    private ?Exchange $exchange = null;
+
     public function getId(): int
     {
         return $this->id;
@@ -174,5 +185,25 @@ class Transaction
     public function setBusinessPartner(BusinessPartner $businessPartner): void
     {
         $this->businessPartner = $businessPartner;
+    }
+
+    public function getAccount(): Account
+    {
+        return $this->account;
+    }
+
+    public function setAccount(Account $account): void
+    {
+        $this->account = $account;
+    }
+
+    public function getExchange(): ?Exchange
+    {
+        return $this->exchange;
+    }
+
+    public function setExchange(?Exchange $exchange): void
+    {
+        $this->exchange = $exchange;
     }
 }
