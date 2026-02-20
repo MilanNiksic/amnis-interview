@@ -80,11 +80,9 @@ class Currency
         return $this->code;
     }
 
-    public function setCode(string $code): static
+    public function setCode(string $code): void
     {
         $this->code = $code;
-
-        return $this;
     }
 
     public function getName(): ?string
@@ -92,11 +90,9 @@ class Currency
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): void
     {
         $this->name = $name;
-
-        return $this;
     }
 
     public function getScale(): int
@@ -104,11 +100,9 @@ class Currency
         return $this->scale;
     }
 
-    public function setScale(int $scale): static
+    public function setScale(int $scale): void
     {
         $this->scale = $scale;
-
-        return $this;
     }
 
     public function getIsActive(): bool
@@ -121,11 +115,9 @@ class Currency
         return $this->isActive;
     }
 
-    public function setIsActive(bool $isActive): static
+    public function setIsActive(bool $isActive): void
     {
         $this->isActive = $isActive;
-
-        return $this;
     }
 
     /**
@@ -136,26 +128,17 @@ class Currency
         return $this->exchangeRatesFrom;
     }
 
-    public function addExchangeRateFrom(CurrencyExchangeRate $exchangeRate): static
+    public function addExchangeRateFrom(CurrencyExchangeRate $exchangeRate): void
     {
         if (!$this->exchangeRatesFrom->contains($exchangeRate)) {
             $this->exchangeRatesFrom->add($exchangeRate);
             $exchangeRate->setFromCurrency($this);
         }
-
-        return $this;
     }
 
-    public function removeExchangeRateFrom(CurrencyExchangeRate $exchangeRate): static
+    public function removeExchangeRateFrom(CurrencyExchangeRate $exchangeRate): void
     {
-        if ($this->exchangeRatesFrom->removeElement($exchangeRate)) {
-            // set the owning side to null (unless already changed)
-            if ($exchangeRate->getFromCurrency() === $this) {
-                $exchangeRate->setFromCurrency(null);
-            }
-        }
-
-        return $this;
+        $this->exchangeRatesFrom->removeElement($exchangeRate);
     }
 
     /**
@@ -166,25 +149,16 @@ class Currency
         return $this->exchangeRatesTo;
     }
 
-    public function addExchangeRateTo(CurrencyExchangeRate $exchangeRate): static
+    public function addExchangeRateTo(CurrencyExchangeRate $exchangeRate): void
     {
         if (!$this->exchangeRatesTo->contains($exchangeRate)) {
             $this->exchangeRatesTo->add($exchangeRate);
             $exchangeRate->setToCurrency($this);
         }
-
-        return $this;
     }
 
-    public function removeExchangeRateTo(CurrencyExchangeRate $exchangeRate): static
+    public function removeExchangeRateTo(CurrencyExchangeRate $exchangeRate): void
     {
-        if ($this->exchangeRatesTo->removeElement($exchangeRate)) {
-            // set the owning side to null (unless already changed)
-            if ($exchangeRate->getToCurrency() === $this) {
-                $exchangeRate->setToCurrency(null);
-            }
-        }
-
-        return $this;
+        $this->exchangeRatesTo->removeElement($exchangeRate);
     }
 }

@@ -12,12 +12,16 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: AccountRepository::class)]
 #[ORM\Table(name: 'accounts', uniqueConstraints: [
     new ORM\UniqueConstraint(name: 'UNIQ_business_partner_currency', columns: ['business_partner_id', 'currency_id'])
 ])]
-#[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(
+    fields: ['businessPartner', 'currency'],
+    message: 'This partner already has an account for this currency.'
+)]
 #[ApiResource(
     operations: [
         new Get(),
@@ -38,6 +42,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
     normalizationContext: ['groups' => ['AccountView']]
 )]
+
 class Account
 {
     #[ORM\Id]
@@ -58,7 +63,8 @@ class Account
 
     #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
     #[Assert\PositiveOrZero]
-    #[Groups(['AccountView'])]
+    #[Assert\Type('int')]
+    #[Groups(['AccountView', 'AccountCreate'])]
     private int $balanceMinor = 0;
 
     #[ORM\Column(length: 255)]
@@ -105,11 +111,9 @@ class Account
         return $this->businessPartner;
     }
 
-    public function setBusinessPartner(BusinessPartner $businessPartner): static
+    public function setBusinessPartner(BusinessPartner $businessPartner): void
     {
         $this->businessPartner = $businessPartner;
-
-        return $this;
     }
 
     public function getCurrency(): Currency
@@ -117,11 +121,9 @@ class Account
         return $this->currency;
     }
 
-    public function setCurrency(Currency $currency): static
+    public function setCurrency(Currency $currency): void
     {
         $this->currency = $currency;
-
-        return $this;
     }
 
     public function getBalanceMinor(): int
@@ -129,11 +131,9 @@ class Account
         return $this->balanceMinor;
     }
 
-    public function setBalanceMinor(int $balanceMinor): static
+    public function setBalanceMinor(int $balanceMinor): void
     {
         $this->balanceMinor = $balanceMinor;
-
-        return $this;
     }
 
     public function getName(): string
@@ -141,11 +141,9 @@ class Account
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): void
     {
         $this->name = $name;
-
-        return $this;
     }
 
     public function getAccountNumber(): string
@@ -153,11 +151,9 @@ class Account
         return $this->accountNumber;
     }
 
-    public function setAccountNumber(string $accountNumber): static
+    public function setAccountNumber(string $accountNumber): void
     {
         $this->accountNumber = $accountNumber;
-
-        return $this;
     }
 
     public function isActive(): bool
@@ -165,11 +161,9 @@ class Account
         return $this->isActive;
     }
 
-    public function setIsActive(bool $isActive): static
+    public function setIsActive(bool $isActive): void
     {
         $this->isActive = $isActive;
-
-        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -183,8 +177,14 @@ class Account
     }
 
     #[Groups(['AccountView'])]
-    public function getBalance(): string
+    public function getBalance(): float
     {
-        return (string)($this->balanceMinor / $this->currency->getScale());
+        return (float)($this->balanceMinor / $this->currency->getScale());
+    }
+
+    #[Groups(['AccountCreate'])]
+    public function setBalance(float $balance): void
+    {
+        $this->balanceMinor = (int)round($balance * $this->currency->getScale(), PHP_ROUND_HALF_DOWN);
     }
 }

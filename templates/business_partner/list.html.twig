@@ -39,6 +39,8 @@
                             <a class="btn btn-sm btn-outline-secondary"
                                href="{{ path('app_business_partner_edit', {'id': businessPartner.id}) }}">Edit</a>
                             <a class="btn btn-sm btn-outline-success"
+                               href="{{ path('app_account_list', {'businessPartnerId': businessPartner.id}) }}">Accounts</a>
+                            <a class="btn btn-sm btn-outline-success"
                                href="{{ path('app_transaction_list', {'businessPartnerId': businessPartner.id}) }}">Transactions</a>
                         </div>
                     </td>

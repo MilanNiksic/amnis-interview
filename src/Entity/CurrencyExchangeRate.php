@@ -46,11 +46,9 @@ class CurrencyExchangeRate
         return $this->fromCurrency;
     }
 
-    public function setFromCurrency(Currency $fromCurrency): static
+    public function setFromCurrency(Currency $fromCurrency): void
     {
         $this->fromCurrency = $fromCurrency;
-
-        return $this;
     }
 
     public function getToCurrency(): Currency
@@ -58,11 +56,9 @@ class CurrencyExchangeRate
         return $this->toCurrency;
     }
 
-    public function setToCurrency(Currency $toCurrency): static
+    public function setToCurrency(Currency $toCurrency): void
     {
         $this->toCurrency = $toCurrency;
-
-        return $this;
     }
 
     public function getRate(): string
@@ -70,11 +66,9 @@ class CurrencyExchangeRate
         return $this->rate;
     }
 
-    public function setRate(string $rate): static
+    public function setRate(string $rate): void
     {
         $this->rate = $rate;
-
-        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
