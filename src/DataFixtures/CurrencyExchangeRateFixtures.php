@@ -26,7 +26,7 @@ class CurrencyExchangeRateFixtures extends Fixture implements DependentFixtureIn
         $chfToEur = new CurrencyExchangeRate();
         $chfToEur->setFromCurrency($chf);
         $chfToEur->setToCurrency($eur);
-        $chfToEur->setRate('0.987');
+        $chfToEur->setRate('1.1');
         $manager->persist($chfToEur);
 
         // USD to CHF
@@ -47,7 +47,7 @@ class CurrencyExchangeRateFixtures extends Fixture implements DependentFixtureIn
         $eurToChf = new CurrencyExchangeRate();
         $eurToChf->setFromCurrency($eur);
         $eurToChf->setToCurrency($chf);
-        $eurToChf->setRate('1.012345');
+        $eurToChf->setRate('0.987');
         $manager->persist($eurToChf);
 
         // EUR to USD - LEFT OUT for testing validation of missing exchange rate

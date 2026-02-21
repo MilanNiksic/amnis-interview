@@ -36,6 +36,7 @@ class AccountType extends AbstractType
             ])
             ->add('balance', NumberType::class, [
                 'scale' => 4,
+                'data' => 0,
                 'disabled' => $options['is_edit'],
                 'required' => true
             ])

@@ -40,8 +40,11 @@ class PayoutManager
                 throw new TransactionExecutionException('Transaction is already executed');
             }
 
-            if ($transaction->getDate() > (new DateTime())) {
-                throw new TransactionExecutionException('Payout transaction date can be only on the current date');
+            // Some issue with validation of datetime. Changed to compare just date part.
+            $transactionDate = $transaction->getDate()->format('Y-m-d');
+            $currentDate = (new DateTime())->format('Y-m-d');
+            if ($transactionDate > $currentDate) {
+                throw new TransactionExecutionException('Payout transaction date cannot be in the future');
             }
 
             if (!$this->balanceManager->hasEnoughMoneyForPayout(
