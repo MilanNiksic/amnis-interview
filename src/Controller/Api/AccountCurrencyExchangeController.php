@@ -30,8 +30,7 @@ class AccountCurrencyExchangeController extends AbstractController
             // Denormalize JSON to Request DTO
             /** @var AccountCurrencyExchangeRequest $exchangeRequest */
             $exchangeRequest = $serializer->denormalize($data, AccountCurrencyExchangeRequest::class);
-            
-            // Validate Request DTO
+
             $violations = $validator->validate($exchangeRequest);
             if (count($violations) > 0) {
                 $errors = [];
@@ -44,7 +43,6 @@ class AccountCurrencyExchangeController extends AbstractController
                 );
             }
 
-            // Fetch accounts
             $fromAccount = $accountRepository->find($exchangeRequest->fromAccountId);
             $toAccount = $accountRepository->find($exchangeRequest->toAccountId);
             if (!$fromAccount || !$toAccount) {
@@ -54,7 +52,6 @@ class AccountCurrencyExchangeController extends AbstractController
                 );
             }
 
-            // Validate business logic
             try {
                 $exchangeManager->validateExchangeData($fromAccount, $toAccount, (float)$exchangeRequest->amount);
             } catch (\InvalidArgumentException $e) {
@@ -64,14 +61,12 @@ class AccountCurrencyExchangeController extends AbstractController
                 );
             }
 
-            // Execute exchange
             $exchange = $exchangeManager->executeExchange(
                 $fromAccount,
                 $toAccount,
                 (float)$exchangeRequest->amount
             );
 
-            // Create Response DTO
             $responseData = new AccountCurrencyExchangeResponse(
                 id: $exchange->getId(),
                 fromAccountId: $fromAccount->getId(),

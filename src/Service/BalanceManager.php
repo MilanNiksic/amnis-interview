@@ -16,7 +16,6 @@ class BalanceManager
         $balance = (float)$account->getBalance();
         $balance += (float)$amount;
         $account->setBalance($balance);
-        $this->entityManager->flush();
 
         return $balance;
     }
@@ -26,7 +25,6 @@ class BalanceManager
         $balance = (float)$account->getBalance();
         $balance -= (float)$amount;
         $account->setBalance($balance);
-        $this->entityManager->flush();
 
         return $balance;
     }
