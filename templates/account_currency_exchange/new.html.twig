@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Exchange{% endblock %}
+
+{% block body %}
+    <h1>Create Exchange</h1>
+
+    {{ include('account_currency_exchange/_form.html.twig') }}
+
+    <a class="btn btn-sm btn-outline-secondary float-start" href="{{ path('app_business_partner_list') }}">Back to list</a>
+{% endblock %}

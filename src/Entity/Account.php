@@ -231,6 +231,12 @@ class Account
     }
 
     #[Groups(['AccountView'])]
+    public function getCurrencyId(): ?int
+    {
+        return $this->currency?->getId();
+    }
+
+    #[Groups(['AccountView'])]
     public function getCurrencyCode(): ?string
     {
         return $this->currency?->getCode();

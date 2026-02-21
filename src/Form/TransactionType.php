@@ -15,6 +15,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\FormError;
 
 class TransactionType extends AbstractType
 {
@@ -60,7 +61,7 @@ class TransactionType extends AbstractType
                 if ($data->getAccount() && $data->getBusinessPartner()) {
                     if ($data->getAccount()->getBusinessPartner()->getId() !== $data->getBusinessPartner()->getId()) {
                         $form->get('account')->addError(
-                            new \Symfony\Component\Form\FormError('The selected account must belong to the chosen business partner.')
+                            new FormError('The selected account must belong to the chosen business partner.')
                         );
                     }
                 }

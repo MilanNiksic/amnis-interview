@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\ExchangeRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ExchangeRepository::class)]
@@ -21,37 +20,32 @@ class Exchange
     #[ORM\ManyToOne(targetEntity: Currency::class)]
     #[Assert\NotBlank]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['ExchangeCreate'])]
     private Currency $fromCurrency;
 
     #[ORM\ManyToOne(targetEntity: Currency::class)]
     #[Assert\NotBlank]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['ExchangeCreate'])]
     private Currency $toCurrency;
 
     #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
     #[Assert\NotBlank]
     #[Assert\Positive]
     #[Assert\Type('int')]
-    #[Groups(['ExchangeCreate'])]
     private int $fromAmount = 0;
 
     #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
     #[Assert\NotBlank]
     #[Assert\Positive]
     #[Assert\Type('int')]
-    #[Groups(['ExchangeCreate', 'ExchangeView'])]
     private string $toAmount;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 18, scale: 8)]
+    #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
     #[Assert\NotBlank]
     #[Assert\Positive]
-    #[Groups(['ExchangeCreate', 'ExchangeView'])]
+    #[Assert\Type('int')]
     private string $exchangeRate;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    #[Groups(['ExchangeCreate', 'ExchangeView'])]
     private \DateTimeImmutable $createdAt;
 
     public function __construct()
