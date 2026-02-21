@@ -4,6 +4,8 @@ namespace App\Controller\Api;
 
 use App\Dto\Request\AccountCurrencyExchangeRequest;
 use App\Dto\Response\AccountCurrencyExchangeResponse;
+use App\Entity\Account;
+use App\Entity\Exchange;
 use App\Repository\AccountRepository;
 use App\Service\ExchangeManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,41 +27,10 @@ class AccountCurrencyExchangeController extends AbstractController
         SerializerInterface $serializer
     ): JsonResponse {
         try {
-            $data = json_decode($request->getContent(), true);
-            
-            // Denormalize JSON to Request DTO
-            /** @var AccountCurrencyExchangeRequest $exchangeRequest */
-            $exchangeRequest = $serializer->denormalize($data, AccountCurrencyExchangeRequest::class);
+            $exchangeRequest = $this->parseRequest($request, $serializer);
+            $this->validateRequest($exchangeRequest, $validator);
 
-            $violations = $validator->validate($exchangeRequest);
-            if (count($violations) > 0) {
-                $errors = [];
-                foreach ($violations as $violation) {
-                    $errors[$violation->getPropertyPath()] = $violation->getMessage();
-                }
-                return new JsonResponse(
-                    ['errors' => $errors],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
-
-            $fromAccount = $accountRepository->find($exchangeRequest->fromAccountId);
-            $toAccount = $accountRepository->find($exchangeRequest->toAccountId);
-            if (!$fromAccount || !$toAccount) {
-                return new JsonResponse(
-                    ['error' => 'One or both accounts not found'],
-                    Response::HTTP_NOT_FOUND
-                );
-            }
-
-            try {
-                $exchangeManager->validateExchangeData($fromAccount, $toAccount, (float)$exchangeRequest->amount);
-            } catch (\InvalidArgumentException $e) {
-                return new JsonResponse(
-                    ['error' => $e->getMessage()],
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
+            [$fromAccount, $toAccount] = $this->retrieveAccounts($exchangeRequest, $accountRepository);
 
             $exchange = $exchangeManager->executeExchange(
                 $fromAccount,
@@ -67,20 +38,8 @@ class AccountCurrencyExchangeController extends AbstractController
                 (float)$exchangeRequest->amount
             );
 
-            $responseData = new AccountCurrencyExchangeResponse(
-                id: $exchange->getId(),
-                fromAccountId: $fromAccount->getId(),
-                toAccountId: $toAccount->getId(),
-                fromCurrency: $fromAccount->getCurrency()->getCode(),
-                toCurrency: $toAccount->getCurrency()->getCode(),
-                fromAmount: $exchange->getFromAmount() / $fromAccount->getCurrencyScale(),
-                toAmount: $exchange->getToAmount() / $toAccount->getCurrencyScale(),
-                exchangeRate: $exchange->getExchangeRate(),
-                createdAt: $exchange->getCreatedAt()->format('Y-m-d H:i:s')
-            );
-
             return new JsonResponse(
-                $serializer->normalize($responseData),
+                $serializer->normalize($this->buildResponse($exchange, $fromAccount, $toAccount)),
                 Response::HTTP_CREATED
             );
         } catch (\Exception $e) {
@@ -89,5 +48,59 @@ class AccountCurrencyExchangeController extends AbstractController
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    private function parseRequest(Request $request, SerializerInterface $serializer): AccountCurrencyExchangeRequest
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if ($data === null) {
+            throw new \InvalidArgumentException('Invalid JSON payload');
+        }
+
+        /** @var AccountCurrencyExchangeRequest $exchangeRequest */
+        return $serializer->denormalize($data, AccountCurrencyExchangeRequest::class);
+    }
+
+    private function validateRequest(AccountCurrencyExchangeRequest $exchangeRequest, ValidatorInterface $validator): void
+    {
+        $violations = $validator->validate($exchangeRequest);
+
+        if (count($violations) > 0) {
+            $errors = [];
+            foreach ($violations as $violation) {
+                $errors[$violation->getPropertyPath()] = $violation->getMessage();
+            }
+            throw new \InvalidArgumentException(json_encode($errors));
+        }
+    }
+
+    private function retrieveAccounts(
+        AccountCurrencyExchangeRequest $exchangeRequest,
+        AccountRepository $accountRepository
+    ): array {
+        $fromAccount = $accountRepository->find($exchangeRequest->fromAccountId);
+        $toAccount = $accountRepository->find($exchangeRequest->toAccountId);
+
+        if (!$fromAccount || !$toAccount) {
+            throw new \RuntimeException('One or both accounts not found');
+        }
+
+        return [$fromAccount, $toAccount];
+    }
+
+    private function buildResponse(Exchange $exchange, Account $fromAccount, Account $toAccount): AccountCurrencyExchangeResponse
+    {
+        return new AccountCurrencyExchangeResponse(
+            id: $exchange->getId(),
+            fromAccountId: $fromAccount->getId(),
+            toAccountId: $toAccount->getId(),
+            fromCurrency: $fromAccount->getCurrency()->getCode(),
+            toCurrency: $toAccount->getCurrency()->getCode(),
+            fromAmount: $exchange->getFromAmount() / $fromAccount->getCurrencyScale(),
+            toAmount: $exchange->getToAmount() / $toAccount->getCurrencyScale(),
+            exchangeRate: $exchange->getExchangeRate(),
+            createdAt: $exchange->getCreatedAt()->format('Y-m-d H:i:s')
+        );
     }
 }

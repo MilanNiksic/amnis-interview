@@ -64,41 +64,10 @@ class ExchangeManager
             $fromAmountMinor = (int)round($fromAmount * $fromAccount->getCurrencyScale(), PHP_ROUND_HALF_UP);
             $toAmountMinor = (int)round($fromAmountMinor * $exchangeRate->getRate(), PHP_ROUND_HALF_UP);
 
-            // Create Exchange record
-            $exchange = new Exchange();
-            $exchange->setFromCurrency($fromAccount->getCurrency());
-            $exchange->setToCurrency($toAccount->getCurrency());
-            $exchange->setFromAmount($fromAmountMinor);
-            $exchange->setToAmount($toAmountMinor);
-            $exchange->setExchangeRate($exchangeRate->getRate());
+            $exchange = $this->createExchange($fromAccount, $toAccount, $fromAmountMinor, $toAmountMinor, $exchangeRate);
+            $payoutTransaction = $this->createPayoutTransaction($fromAccount, $toAccount, $exchange, $fromAmountMinor);
+            $payinTransaction = $this->createPayinTransaction($fromAccount, $toAccount, $exchange, $toAmountMinor);
 
-            // Create EXCHANGE transaction on source account
-            $payoutTransaction = new Transaction();
-            $payoutTransaction->setBusinessPartner($fromAccount->getBusinessPartner());
-            $payoutTransaction->setAccount($fromAccount);
-            $payoutTransaction->setExchange($exchange);
-            $payoutTransaction->setType(TransactionTypeEnum::EXCHANGE);
-            $payoutTransaction->setAmount('-' . ($fromAmountMinor / $fromAccount->getCurrencyScale()));
-            $payoutTransaction->setName("Exchange: {$fromAccount->getCurrencyCode()} → {$toAccount->getCurrencyCode()}");
-            $payoutTransaction->setDate(new DateTimeImmutable());
-            $payoutTransaction->setCountry($fromAccount->getBusinessPartner()->getCountry());
-            $payoutTransaction->setIban('');
-            $payoutTransaction->setExecuted(true);
-
-            // Create EXCHANGE transaction on destination account
-            $payinTransaction = new Transaction();
-            $payinTransaction->setBusinessPartner($toAccount->getBusinessPartner());
-            $payinTransaction->setAccount($toAccount);
-            $payinTransaction->setExchange($exchange);
-            $payinTransaction->setType(TransactionTypeEnum::EXCHANGE);
-            $payinTransaction->setAmount('+' . $toAmountMinor / $toAccount->getCurrencyScale());
-            $payinTransaction->setName("Exchange: {$fromAccount->getCurrencyCode()} → {$toAccount->getCurrencyCode()}");
-            $payinTransaction->setDate(new DateTimeImmutable());
-            $payinTransaction->setCountry($toAccount->getBusinessPartner()->getCountry());
-            $payinTransaction->setIban($toAccount->getAccountNumber());
-            $payinTransaction->setExecuted(true);
-
-            // Update account balances
             $fromAccount->setBalanceMinor($fromAccount->getBalanceMinor() - $fromAmountMinor);
             $toAccount->setBalanceMinor($toAccount->getBalanceMinor() + $toAmountMinor);
 
@@ -132,5 +101,64 @@ class ExchangeManager
         }
 
         return $exchangeRate;
+    }
+
+    private function createExchange(
+        Account $fromAccount,
+        Account $toAccount,
+        int $fromAmountMinor,
+        int $toAmountMinor,
+        CurrencyExchangeRate $exchangeRate
+    ): Exchange {
+        $exchange = new Exchange();
+        $exchange->setFromCurrency($fromAccount->getCurrency());
+        $exchange->setToCurrency($toAccount->getCurrency());
+        $exchange->setFromAmount($fromAmountMinor);
+        $exchange->setToAmount($toAmountMinor);
+        $exchange->setExchangeRate($exchangeRate->getRate());
+
+        return $exchange;
+    }
+
+    private function createPayoutTransaction(
+        Account $fromAccount,
+        Account $toAccount,
+        Exchange $exchange,
+        int $fromAmountMinor
+    ): Transaction {
+        $transaction = new Transaction();
+        $transaction->setBusinessPartner($fromAccount->getBusinessPartner());
+        $transaction->setAccount($fromAccount);
+        $transaction->setExchange($exchange);
+        $transaction->setType(TransactionTypeEnum::EXCHANGE);
+        $transaction->setAmount('-' . ($fromAmountMinor / $fromAccount->getCurrencyScale()));
+        $transaction->setName("Exchange: {$fromAccount->getCurrencyCode()} → {$toAccount->getCurrencyCode()}");
+        $transaction->setDate(new DateTimeImmutable());
+        $transaction->setCountry($fromAccount->getBusinessPartner()->getCountry());
+        $transaction->setIban('');
+        $transaction->setExecuted(true);
+
+        return $transaction;
+    }
+
+    private function createPayinTransaction(
+        Account $fromAccount,
+        Account $toAccount,
+        Exchange $exchange,
+        int $toAmountMinor
+    ): Transaction {
+        $transaction = new Transaction();
+        $transaction->setBusinessPartner($toAccount->getBusinessPartner());
+        $transaction->setAccount($toAccount);
+        $transaction->setExchange($exchange);
+        $transaction->setType(TransactionTypeEnum::EXCHANGE);
+        $transaction->setAmount('+' . $toAmountMinor / $toAccount->getCurrencyScale());
+        $transaction->setName("Exchange: {$fromAccount->getCurrencyCode()} → {$toAccount->getCurrencyCode()}");
+        $transaction->setDate(new DateTimeImmutable());
+        $transaction->setCountry($toAccount->getBusinessPartner()->getCountry());
+        $transaction->setIban($toAccount->getAccountNumber());
+        $transaction->setExecuted(true);
+
+        return $transaction;
     }
 }

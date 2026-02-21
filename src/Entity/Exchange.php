@@ -15,7 +15,7 @@ class Exchange
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\ManyToOne(targetEntity: Currency::class)]
     #[Assert\NotBlank]
@@ -37,13 +37,12 @@ class Exchange
     #[Assert\NotBlank]
     #[Assert\Positive]
     #[Assert\Type('int')]
-    private string $toAmount;
+    private int $toAmount = 0;
 
-    #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
+    #[ORM\Column(type: Types::DECIMAL, precision: 18, scale: 8)]
     #[Assert\NotBlank]
     #[Assert\Positive]
-    #[Assert\Type('int')]
-    private string $exchangeRate;
+    private float $exchangeRate;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
@@ -78,32 +77,32 @@ class Exchange
         $this->toCurrency = $toCurrency;
     }
 
-    public function getFromAmount(): string
+    public function getFromAmount(): int
     {
         return $this->fromAmount;
     }
 
-    public function setFromAmount(string $fromAmount): void
+    public function setFromAmount(int $fromAmount): void
     {
         $this->fromAmount = $fromAmount;
     }
 
-    public function getToAmount(): string
+    public function getToAmount(): int
     {
         return $this->toAmount;
     }
 
-    public function setToAmount(string $toAmount): void
+    public function setToAmount(int $toAmount): void
     {
         $this->toAmount = $toAmount;
     }
 
-    public function getExchangeRate(): string
+    public function getExchangeRate(): float
     {
         return $this->exchangeRate;
     }
 
-    public function setExchangeRate(string $exchangeRate): void
+    public function setExchangeRate(float $exchangeRate): void
     {
         $this->exchangeRate = $exchangeRate;
     }
