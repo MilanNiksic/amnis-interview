@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-use App\DTO\AccountCurrencyExchangeDTO;
+use App\Dto\AccountCurrencyExchangeDTO;
 use App\Entity\Account;
 use App\Entity\BusinessPartner;
 use Doctrine\ORM\EntityRepository;
