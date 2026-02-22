@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Business partner lists{% endblock %}
+
+{% block body %}
+    <h1>{{ businessPartner.name }} Accounts</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Currency</th>
+                <th>Balance</th>
+                <th>Account number</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+                <tr>
+                    <td>{{ account.id }}</td>
+                    <td>{{ account.name }}</td>
+                    <td>{{ account.currency.code }}</td>
+                    <td>{{ account.balance }}</td>
+                    <td>{{ account.accountNumber }}</td>
+                    <td>{{ account.isActive ? 'Yes' : 'No' }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a class="btn btn-sm btn-outline-primary"
+                               href="{{ path('app_account_show', {'id': account.id}) }}">Show</a>
+                            <a class="btn btn-sm btn-outline-secondary"
+                               href="{{ path('app_account_edit', {'id': account.id}) }}">Edit</a>
+                            <a class="btn btn-sm btn-outline-success"
+                               href="{{ path('app_transaction_list', {'accountId': account.id}) }}">Transactions</a>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="10">No records found</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a class="btn btn-sm btn-outline-primary" href="{{ path('app_account_new', {'businessPartnerId': businessPartner.id}) }}">Create new</a>
+{% endblock %}

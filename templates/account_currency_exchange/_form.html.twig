@@ -1,0 +1,209 @@
+{{ form_start(form) }}
+    {{ form_widget(form) }}
+    <div class="card mb-3 bg-light">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1"><small class="text-muted">Exchange Rate:</small></p>
+                    <p class="mb-0"><strong id="exchangeRate">-</strong> <small id="ratePair" class="text-muted">n/n</small></p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><small class="text-muted">To Amount:</small></p>
+                    <p class="mb-0"><strong id="toAmount">-</strong> <span id="toCurrencyCode">n</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="btn btn-sm btn-outline-primary float-end">{{ button_label|default('Save') }}</button>
+{{ form_end(form) }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let accounts = null;
+            let fromAccount = null;
+            let toAccount = null;
+            let exchangeRate = null;
+
+            const businessPartnerSelect = document.getElementById('account_currency_exchange_businessPartner');
+            const fromAccountSelect = document.getElementById('account_currency_exchange_fromAccount');
+            const toAccountSelect = document.getElementById('account_currency_exchange_toAccount');
+            const amountInput = document.getElementById('account_currency_exchange_amount');
+            const exchangeRateDisplay = document.getElementById('exchangeRate');
+            const toAmountDisplay = document.getElementById('toAmount');
+            const toCurrencyDisplay = document.getElementById('toCurrencyCode');
+            const ratePairDisplay = document.getElementById('ratePair');
+
+            fromAccountSelect.disabled = true;
+            toAccountSelect.disabled = true;
+
+            exchangeRateDisplay.textContent = '-';
+            toAmountDisplay.textContent = '-';
+
+            // Create help element for from account balance display
+            const helpElement = document.createElement('small');
+            helpElement.classList.add('form-text');
+            helpElement.style.display = 'block';
+            helpElement.style.marginTop = '4px';
+
+            // Handle business partner change
+            if (businessPartnerSelect) {
+                businessPartnerSelect.addEventListener('change', function() {
+                    const partnerId = this.value;
+                    
+                    if (!partnerId) {
+                        // No partner selected - disable account fields
+                        fromAccountSelect.disabled = true;
+                        toAccountSelect.disabled = true;
+                        fromAccountSelect.value = '';
+                        toAccountSelect.value = '';
+                        exchangeRateDisplay.textContent = '-';
+                        toAmountDisplay.textContent = '-';
+                        return;
+                    }
+
+                    // Fetch accounts for this partner
+                    fetch(`/api/business_partners/${partnerId}/accounts`)
+                        .then(response => response.json())
+                        .then(data => {
+                            accounts = data['hydra:member'] ?? [];
+
+                            // Clear existing options
+                            fromAccountSelect.innerHTML = '<option value="">Select account to sell from</option>';
+                            toAccountSelect.innerHTML = '<option value="">Select account to buy to</option>';
+
+                            // Add new options
+                            accounts.forEach(account => {
+                                const optionText = `${account.name} (${account.currencyCode})`;
+                                
+                                const fromOption = document.createElement('option');
+                                fromOption.value = account.id;
+                                fromOption.textContent = optionText;
+                                fromAccountSelect.appendChild(fromOption);
+
+                                const toOption = document.createElement('option');
+                                toOption.value = account.id;
+                                toOption.textContent = optionText;
+                                toAccountSelect.appendChild(toOption);
+                            });
+
+                            // Enable account fields
+                            fromAccountSelect.disabled = false;
+                            toAccountSelect.disabled = false;
+
+                            // Reset calculations
+                            exchangeRateDisplay.textContent = '-';
+                            toAmountDisplay.textContent = '-';
+                        })
+                        .catch(error => {
+                            console.error('Error fetching accounts:', error);
+                            fromAccountSelect.disabled = true;
+                            toAccountSelect.disabled = true;
+                        });
+                });
+            }
+
+            // Calculate exchange rate and to amount
+            function updateExchangeCalculation() {
+                if (!accounts) {
+                    exchangeRateDisplay.textContent = '-';
+                    toAmountDisplay.textContent = '-';
+                    return;
+                }
+
+                const previousFromAccount = fromAccount;
+                const previousToAccount = toAccount;
+
+                fromAccount = accounts[fromAccountSelect.selectedIndex - 1];
+                toAccount = accounts[toAccountSelect.selectedIndex - 1];
+
+                const fromAccountOption = fromAccountSelect.options[fromAccountSelect.selectedIndex];
+                const toAccountOption = toAccountSelect.options[toAccountSelect.selectedIndex];
+                const amount = parseFloat(amountInput.value) || 0;
+
+                if (helpElement && fromAccount) {
+                    helpElement.textContent = `Balance: ${fromAccount.balance} ${fromAccount.currencyCode}`;
+                }
+
+                if (!fromAccount || !toAccount || amount === 0) {
+                    exchangeRateDisplay.textContent = '-';
+                    toAmountDisplay.textContent = '-';
+                    return;
+                }
+
+                const fromCurrency = fromAccount.currencyCode;
+                const toCurrency = toAccount.currencyCode;
+
+                toCurrencyDisplay.textContent = toCurrency;
+                const rateKey = fromCurrency + '-' + toCurrency;
+
+
+                if (fromAccount !== previousFromAccount || toAccount !== previousToAccount || !exchangeRate) {
+                    fetch(`/api/currencies/${fromAccount.currencyId}/rate/${toAccount.currencyId}`)
+                        .then(response => {
+                            if (response.status === 404) {
+                                const err = new Error(response.statusText);
+                                err.status = 404;
+                                throw err;
+                            }
+                            if (!response.ok) {
+                                const text = response.text().catch(() => null);
+                                const err = new Error(text || 'Network error');
+                                err.status = response.status;
+                                throw err;
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            const rate = data.rate;
+
+                            if (rate)
+                            {
+                                exchangeRateDisplay.textContent = rate;
+                                ratePairDisplay.textContent = fromCurrency + '/' + toCurrency;
+                                
+                                // Calculate toAmount using basic multiplication (browser-side, for display only)
+                                const toAmount = Math.round((amount * fromAccount.currencyScale * parseFloat(rate)).toFixed(8));
+                                toAmountDisplay.textContent = toAmount / toAccount.currencyScale;
+                                exchangeRate = rate;
+                            }
+                        })
+                        .catch(error => {
+                            if (error && error.status === 404) {
+                                exchangeRateDisplay.textContent = '(rate not found)';
+                                ratePairDisplay.textContent = fromCurrency + '/' + toCurrency;
+                                toAmountDisplay.textContent = '-';
+                                return;
+                            }
+
+                            console.error('Error fetching exchange rate:', error);
+                            exchangeRateDisplay.textContent = '? (rate not found)';
+                            ratePairDisplay.textContent = fromCurrency + '/' + toCurrency;
+                            toAmountDisplay.textContent = '-';
+                        });
+                } else if (exchangeRate) {
+                    exchangeRateDisplay.textContent = exchangeRate;
+                    ratePairDisplay.textContent = fromCurrency + '/' + toCurrency;
+                    
+                    // Calculate toAmount using basic multiplication (browser-side, for display only)
+                    const toAmount = Math.round((amount * fromAccount.currencyScale * parseFloat(exchangeRate)).toFixed(8));
+                    toAmountDisplay.textContent = toAmount / toAccount.currencyScale;
+                }
+            }
+
+            // Event listeners for updating calculation
+            if (fromAccountSelect) {
+                // Ubacimo ga ispod selecta
+                fromAccountSelect.parentNode.appendChild(helpElement);
+                fromAccountSelect.addEventListener('change', updateExchangeCalculation);
+            }
+            if (toAccountSelect) {
+                toAccountSelect.addEventListener('change', updateExchangeCalculation);
+            }
+            if (amountInput) {
+                amountInput.addEventListener('input', updateExchangeCalculation);
+            }
+
+            // Initial calculation
+            updateExchangeCalculation();
+        });
+    </script>

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Services;
 
+use App\Entity\Account;
 use App\Entity\BusinessPartner;
+use App\Entity\Currency;
 use App\Enums\BusinessPartnerStatusEnum;
 use App\Enums\LegalFormEnum;
 use App\Service\BalanceManager;
@@ -26,42 +28,53 @@ class BalanceManagerTest extends WebTestCase
 
     public function testPayinBalanceChange(): void
     {
-        $businessPartner = $this->createBusinessPartner();
+        $account = $this->createAccount();
 
-        $this->balanceManager->increaseBalance($businessPartner, '1000');
+        $this->balanceManager->increaseBalance($account, '1000');
 
-        $this->assertEquals('11000', $businessPartner->getBalance());
+        $this->assertEquals(11000.0, $account->getBalance());
     }
 
     public function testPayoutBalanceChange(): void
     {
-        $businessPartner = $this->createBusinessPartner();
+        $account = $this->createAccount();
 
-        $this->balanceManager->decreaseBalance($businessPartner, '1000');
+        $this->balanceManager->decreaseBalance($account, '1000');
 
-        $this->assertEquals('9000', $businessPartner->getBalance());
+        $this->assertEquals(9000.0, $account->getBalance());
     }
 
     public function testHasEnoughMoneyForPayout(): void
     {
-        $businessPartner = $this->createBusinessPartner();
+        $account = $this->createAccount();
 
-        $this->assertTrue($this->balanceManager->hasEnoughMoneyForPayout($businessPartner, '1000'));
-        $this->assertFalse($this->balanceManager->hasEnoughMoneyForPayout($businessPartner, '11000'));
+        $this->assertTrue($this->balanceManager->hasEnoughMoneyForPayout($account, '1000'));
+        $this->assertFalse($this->balanceManager->hasEnoughMoneyForPayout($account, '11000'));
     }
 
-    private function createBusinessPartner(): BusinessPartner
+    private function createAccount(): Account
     {
         $businessPartner = new BusinessPartner();
         $businessPartner->setName('AMNIS Treasury Services AG');
         $businessPartner->setStatus(BusinessPartnerStatusEnum::ACTIVE);
         $businessPartner->setLegalForm(LegalFormEnum::LIMITED_LIABILITY_COMPANY);
-        $businessPartner->setBalance('10000');
         $businessPartner->setAddress('Baslerstrasse 60');
         $businessPartner->setCity('Zürich');
         $businessPartner->setZip('8048');
         $businessPartner->setCountry('CH');
 
-        return $businessPartner;
+        $currency = new Currency();
+        $currency->setCode('CHF');
+        $currency->setScale(100);
+        $currency->setIsActive(true);
+
+        $account = new Account();
+        $account->setName('Main Account');
+        $account->setAccountNumber('CH9300762011623852957');
+        $account->setBusinessPartner($businessPartner);
+        $account->setCurrency($currency);
+        $account->setBalance(10000.0); // 10000.00 CHF = 1000000 balanceMinor
+
+        return $account;
     }
 }

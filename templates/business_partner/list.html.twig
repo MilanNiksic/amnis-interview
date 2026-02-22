@@ -16,7 +16,6 @@
                 <th>City</th>
                 <th>Zip</th>
                 <th>Country</th>
-                <th>Balance</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -31,13 +30,14 @@
                     <td>{{ businessPartner.city }}</td>
                     <td>{{ businessPartner.zip }}</td>
                     <td>{{ businessPartner.country }}</td>
-                    <td>{{ businessPartner.balance }}</td>
                     <td>
                         <div class="btn-group" role="group">
                             <a class="btn btn-sm btn-outline-primary"
                                href="{{ path('app_business_partner_show', {'id': businessPartner.id}) }}">Show</a>
                             <a class="btn btn-sm btn-outline-secondary"
                                href="{{ path('app_business_partner_edit', {'id': businessPartner.id}) }}">Edit</a>
+                            <a class="btn btn-sm btn-outline-success"
+                               href="{{ path('app_account_list', {'businessPartnerId': businessPartner.id}) }}">Accounts</a>
                             <a class="btn btn-sm btn-outline-success"
                                href="{{ path('app_transaction_list', {'businessPartnerId': businessPartner.id}) }}">Transactions</a>
                         </div>

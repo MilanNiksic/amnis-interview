@@ -71,15 +71,13 @@ class BusinessPartner
     #[Groups(['BusinessPartnerView', 'BusinessPartnerCreate'])]
     private string $country;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    #[Assert\NotBlank]
-    #[Assert\GreaterThanOrEqual(0)]
-    #[Groups(['BusinessPartnerView'])]
-    private ?string $balance = '0';
-
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'businessPartner')]
     #[Groups(['BusinessPartnerView'])]
     private Collection $transactions;
+
+    #[ORM\OneToMany(targetEntity: Account::class, mappedBy: 'businessPartner')]
+    #[Groups(['BusinessPartnerView'])]
+    private Collection $accounts;
 
     public function __toString(): string
     {
@@ -89,6 +87,7 @@ class BusinessPartner
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
+        $this->accounts = new ArrayCollection();
     }
 
     public function getId(): int
@@ -166,16 +165,6 @@ class BusinessPartner
         $this->country = $country;
     }
 
-    public function getBalance(): ?string
-    {
-        return $this->balance;
-    }
-
-    public function setBalance(?string $balance): void
-    {
-        $this->balance = $balance;
-    }
-
     public function getTransactions(): Collection
     {
         return $this->transactions;
@@ -196,5 +185,23 @@ class BusinessPartner
     public function removeTransaction(Transaction $transaction): void
     {
         $this->transactions->removeElement($transaction);
+    }
+
+    public function getAccounts(): Collection
+    {
+        return $this->accounts;
+    }
+
+    public function addAccount(Account $account): void
+    {
+        if (!$this->accounts->contains($account)) {
+            $this->accounts->add($account);
+            $account->setBusinessPartner($this);
+        }
+    }
+
+    public function removeAccount(Account $account): void
+    {
+        $this->accounts->removeElement($account);
     }
 }
