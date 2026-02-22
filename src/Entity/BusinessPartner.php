@@ -192,20 +192,16 @@ class BusinessPartner
         return $this->accounts;
     }
 
-    public function addAccount(Account $account): static
+    public function addAccount(Account $account): void
     {
         if (!$this->accounts->contains($account)) {
             $this->accounts->add($account);
             $account->setBusinessPartner($this);
         }
-
-        return $this;
     }
 
-    public function removeAccount(Account $account): static
+    public function removeAccount(Account $account): void
     {
         $this->accounts->removeElement($account);
-
-        return $this;
     }
 }
